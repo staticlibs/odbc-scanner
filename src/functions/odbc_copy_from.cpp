@@ -579,13 +579,28 @@ static std::unique_ptr<SourceReader> OpenReader(const ReaderOptions &options) {
 			                       ", sql: '" + query + "', message: '" + err + "'");
 		}
 	}
+
 	const std::string &select_query = options.queries.at(options.queries.size() - 1);
+	duckdb_prepared_statement ps_ptr = nullptr;
+	duckdb_state state_prepare = duckdb_prepare(conn.get(), select_query.c_str(), &ps_ptr);
+	PreparedStatementPtr ps(ps_ptr, PreparedStatementDeleter);
+	if (state_prepare != DuckDBSuccess) {
+		const char *cerr = duckdb_prepare_error(ps.get());
+		std::string err = cerr != nullptr ? std::string(cerr) : "N/A";
+		throw ScannerException("'odbc_copy_from' error: source query prepare failure, sql: '" + select_query + "', message: '" +
+		                       err + "'");
+	}
+
 	ResultPtr result(new duckdb_result(), ResultDeleter);
-	duckdb_state state_select = duckdb_query(conn.get(), select_query.c_str(), result.get());
+#ifndef DUCKDB_API_NO_DEPRECATED
+	duckdb_state state_select = duckdb_execute_prepared_streaming(ps.get(), result.get());
+#else // !DUCKDB_API_NO_DEPRECATED
+	duckdb_state state_select = duckdb_execute_prepared(ps.get(), result.get());
+#endif // DUCKDB_API_NO_DEPRECATED
 	if (state_select != DuckDBSuccess) {
 		const char *cerr = duckdb_result_error(result.get());
 		std::string err = cerr != nullptr ? std::string(cerr) : "N/A";
-		throw ScannerException("'odbc_copy_from' error: source query failure, sql: '" + select_query + "', message: '" +
+		throw ScannerException("'odbc_copy_from' error: source query execute failure, sql: '" + select_query + "', message: '" +
 		                       err + "'");
 	}
 

@@ -68,4 +68,10 @@ inline void DataChunkDeleter(duckdb_data_chunk chunk) {
 	duckdb_destroy_data_chunk(&chunk);
 }
 
+using PreparedStatementPtr = std::unique_ptr<_duckdb_prepared_statement, void (*)(duckdb_prepared_statement)>;
+
+inline void PreparedStatementDeleter(duckdb_prepared_statement ps) {
+	duckdb_destroy_prepare(&ps);
+}
+
 } // namespace odbcscanner
