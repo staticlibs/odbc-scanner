@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  DUCKDB_CAPI_LIB_URL_LINUX_AMD64: https://github.com/duckdb/duckdb/releases/latest/download/libduckdb-linux-amd64.zip
+  DUCKDB_CAPI_LIB_URL_LINUX_AMD64: https://artifacts.duckdb.org/v2.0-cyanoptera/duckdb-shared-libs-linux-amd64.tar.gz
   CCACHE_DIR: ${{ github.workspace }}/ccache
 
 jobs:
@@ -79,6 +79,7 @@ jobs:
       - name: SQL Tests
         run: |
           python ./resources/scripts/run_sqllogic_tests.py --dbms DuckDB
+          exit 1
 
       - name: Save Cache
         uses: actions/cache/save@v5
