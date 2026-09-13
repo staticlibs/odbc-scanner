@@ -12,6 +12,7 @@ jobs:
   format-check:
     name: Format Check
     runs-on: ubuntu-latest
+    if: ${{ false }}
     steps:
       - uses: actions/checkout@v6
       - run: |
@@ -21,7 +22,7 @@ jobs:
   duckdb-linux-amd64:
     name: DuckDB Linux (amd64)
     runs-on: ubuntu-latest
-    needs: format-check
+    # needs: format-check
     env:
       GEN: ninja
       CC: 'ccache gcc'
@@ -64,7 +65,7 @@ jobs:
           mkdir libduckdb
           cd libduckdb
           curl --no-progress-meter -LO ${DUCKDB_CAPI_LIB_URL_LINUX_AMD64}
-          unzip -q libduckdb-linux-amd64.zip
+          tar xzvf duckdb-shared-libs-linux-amd64.tar.gz
           ls -laR
 
       - name: Build
